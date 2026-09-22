@@ -1,0 +1,20 @@
+// Notes:
+
+/////////////////////////////////////
+
+// struct Person
+// {
+//     char name[50];
+// };
+
+// to get -> struct Person person;
+
+    
+/////////////////////////////////////
+
+// typedef struct
+// {
+//     char name[50];
+// } Person;
+
+// to get -> Person person;

@@ -1,3 +1,12 @@
+/* ---------------------------------------
+LAB0:  Dynamic allocated Address Book
+-------------------------------------------
+-Create (dynamically) an empty address book.
+-Read from the standard input the number of persons that the user intends to put into the address book.
+-Dynamically allocate an array of struct Person of the correct size and store a pointer to it in the address book. 
+-In a loop, read from the standard input the information you need for every person to be stored in the address book. Assume that the inputs are correct, so you are not expected to validate them.
+-Return the address book.
+==========================================  */
 #include<stdio.h>
 #include<stdlib.h>
 

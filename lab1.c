@@ -31,9 +31,11 @@ PCB *pcb[MAX_PROCESSES] = {NULL};
 void Print_Hierarchy()
 { //"PROCEDURE TO PRINT HIERARCHY OF PROCESSES"
     /* declare local vars */
+    childNode *current;
 
     /* for each process index i from 0 up to (but not including) maximum number
     of processes*/
+    printf("\nProcess list:\n");
     for (int i = 0; i < MAX_PROCESSES; i++)
     {
 
@@ -58,7 +60,13 @@ void Print_Hierarchy()
             }
             else
             {
-                printf("\tParent process: %d\n", pcb[i]->children);
+                current = pcb[i]->children;
+
+                while (current != NULL)
+                {
+                    printf("\tChild process: %d\n", current->index);
+                    current = current->link;
+                }
             }
         }
     }
@@ -91,26 +99,76 @@ void option1()
 
 void option2()
 { // "PROCDURE#2 - Create a new child process
+
+    // allocate memory for an unused PCB[q]
+    //  record the parent's index, p, in PCB[q]
+    //  initialize the list of children of PCB[q] as empty (NULL)
+    //  create a new link containing the child's index q and append the link to the
+    // children field of PCB[p]
+
     /* define local vars */
+    int p;
+    int q = 0;
+    childNode *newNode;
+    childNode *current;
 
     /* prompt for parent process index p */
-    
+    printf("Enter the parent process id: ");
+    scanf("%d", &p);
+
     /* if PCB[p] is NULL, print message process does not exist, return */
-    
+    if (pcb[p] == NULL)/**/
+    {
+        printf("\nprocess does not exit");
+        return;
+    }
+
     /* search for first available index q without a parent in a while loop */
-    
+    while (q < MAX_PROCESSES && pcb[q] != NULL)
+    {
+        q++;
+    }
+
     /* if maximum number of processes reached, print message of no more avaiable
     PCBs */
-    
+    if (q == MAX_PROCESSES)
+    {
+        printf("\nNo more avaiable PCBs");
+        return;
+    }
+
     /* allocate memory for new child process, initialize fields */
-    
+    pcb[q] = malloc(sizeof(PCB)); // getting memmory for new pcb[q]
+
     /* record the parent's index p in PCB[q] */
-    
+    pcb[q]->parent = p;
+
     /* initialize the list of children of PCB[q] as empty */
-    
+    pcb[q]->children = NULL;
+
     /* append the node containing the child's index q to the children linked list
     of PCB[p] */
-    
+    newNode = malloc(sizeof(childNode));
+
+    newNode->index = q;
+    newNode->link = NULL;
+
+    if (pcb[p]->children == NULL)
+    {
+        pcb[p]->children = newNode;
+    }
+    else
+    {
+        current = pcb[p]->children;
+
+        while (current->link != NULL)
+        {
+            current = current->link;
+        }
+
+        current->link = newNode;
+    }
+
     /* print hierarchy of processes */
     Print_Hierarchy();
     return;
@@ -118,27 +176,60 @@ void option2()
 
 /***************************************************************/
 
-// void distroyChildNode(struct Node* parameter)
-// { //"RECURSIVE PROCEDURE TO DESTROY CHILDREN PROCESSES"
-//     /* declare local vars */
-//     /* check if end of linked list--if so return */
-//     /* else call self on next node in linked list */
-//     /* set variable q to current node's process index field */
-//     /* call self on children of PCB[q] */
-//     /* free memory of PCB[q] and set PCB[q] to NULL*/
-//     /* free memory of paramter and set to NULL */
-//     return;
-// } /* end of procedure */
+void distroyChildNode(childNode *parameter)
+{ //"RECURSIVE PROCEDURE TO DESTROY CHILDREN PROCESSES"
+    /* declare local vars */
+    int q;
+
+    /* check if end of linked list--if so return */
+    if (parameter == NULL)
+    {
+        return;
+    }
+    else
+    {
+
+        /* else call self on next node in linked list */
+        distroyChildNode(parameter->link);
+
+        /* set variable q to current node's process index field */
+        q = parameter->index;
+
+        /* call self on children of PCB[q] */
+        distroyChildNode(pcb[q]->children);
+
+        /* free memory of PCB[q] and set PCB[q] to NULL*/
+        free(pcb[q]);
+        pcb[q] = NULL;
+
+        /* free memory of paramter and set to NULL */
+        free(parameter);
+        parameter = NULL;
+    }
+
+    return;
+} /* end of procedure */
 
 /***************************************************************/
 
 void option3()
 { //"PROCEDURE#3 - Destroy all descendants of a process
     /* declare local vars */
+    int p;
+
     /* prompt for process index p */
+    printf("Enter the parent process whose descendants are to be destroyed: ");
+    scanf("%d", &p);
+
     /* call recursive procedure to destroy children of PCB[p] */
+    distroyChildNode(pcb[p]->children);
+
     /* reset children of PCB[p] to NULL */
+    pcb[p]->children = NULL;
+
     /* print hierarchy of processes */
+    Print_Hierarchy();
+
     return;
 } /* end of procedure */
 
@@ -146,10 +237,32 @@ void option3()
 
 void option4()
 { // "PROCEDURE#4 - Quit program and free memory
+    printf("Quitting program...\n");
     /* if PCB[0] is non null) */
-    /* if children of PCB[0] is not null */
-    /* call recursive procedure to destroy children of PCB[0] */
+    if (pcb[0] != NULL)
+    {
+        /* if children of PCB[0] is not null */
+        if (pcb[0]->children != NULL)
+        {
+            /* call recursive procedure to destroy children of PCB[0] */
+            distroyChildNode(pcb[0]->children);
+            pcb[0]->children = NULL;
+        }
+
+        free(pcb[0]);
+        pcb[0] = NULL;
+    }
+
     /* free memory of all PCB's */
+    for (int i = 0; i < MAX_PROCESSES; i++)
+    {
+        if (pcb[i] != NULL)
+        {
+            free(pcb[i]);
+            pcb[i] = NULL;
+        }
+    }
+
     return;
 } /* end of procedure */
 /***************************************************************/
@@ -175,7 +288,6 @@ int main()
         /* prompt for menu selection */
         printf("Enter Selection: ");
         scanf("%d", &userInput);
-        printf("\n");
 
         /* call appropriate procedure based on choice--use switch statement or
         series of if, else if, else statements */
